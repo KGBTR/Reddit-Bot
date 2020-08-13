@@ -14,5 +14,5 @@
 
   - Version | Versiyon:
 	
-## Use case command | Kullanılan Komut
+## Use Case Command | Kullanılan Komut
 
