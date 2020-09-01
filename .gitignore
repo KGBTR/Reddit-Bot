@@ -126,6 +126,9 @@ celerybeat.pid
 #INI
 praw.ini
 
+#Submodule Exclusion
+app/**/*
+
 # Environments
 .env
 .venv
