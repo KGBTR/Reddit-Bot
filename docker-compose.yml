@@ -1,0 +1,72 @@
+version: '3.7'
+
+services:
+  publisher:
+    image: kgbtrbot:publisher
+    container_name: kgbtrbot-publisher
+    build:
+      context: ./.docker/python
+      target: development-stage
+    networks:
+      - net
+    volumes: 
+      - ./app/Publisher:/app
+      - ./app/Utils:/app/Utils
+      - ./praw.ini:/app/praw.ini
+    command:
+     - python
+     - main.py
+  
+  consumer:
+    image: kgbtrbot:consumer
+    container_name: kgbtrbot-consumer
+    build:
+      context: ./.docker/python
+      target: development-stage
+    networks:
+      - net
+    volumes: 
+      - ./app/Consumer:/app
+      - ./app/Common:/app/Common
+      - ./app/Tasks:/app/Tasks
+      - ./app/Utils:/app/Utils
+      - ./praw.ini:/app/praw.ini
+    command:
+     - python
+     - main.py
+
+  2fa:
+    image: kgbtrbot:authy
+    container_name: kgbtrbot-2fa
+    build:
+      context: ./.docker/python
+      target: development-stage
+    networks:
+      - net
+    volumes: 
+      - ./app/2FA:/app
+    command:
+     - python
+     - main.py
+
+  rabbitmq:
+    image: rabbitmq:management-alpine
+    container_name: kgbtrbot-rabbitmq
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq/
+      - ./.docker/rabbitmq/logs/:/var/log/rabbitmq/
+      - ./.docker/rabbitmq/config:/etc/rabbitmq/
+    environment:
+      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE}
+    networks:
+      - net
+    ports:
+      - 5672:5672
+      - 15672:15672
+
+networks:
+  net:
+    driver: bridge
+
+volumes:
+  rabbitmq-data:
