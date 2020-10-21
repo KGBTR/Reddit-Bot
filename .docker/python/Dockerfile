@@ -1,4 +1,4 @@
-FROM python:3.8-alpine as development-stage
+FROM python:3.9-alpine as development-stage
 
 WORKDIR /app
 
