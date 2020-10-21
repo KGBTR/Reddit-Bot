@@ -1,6 +1,15 @@
-version: '3.7'
+version: "3.7"
 
 services:
+  venv-init:
+    image: python:3.9-alpine
+    container_name: kgbtrbot-venv-init
+    networks:
+      - net
+    volumes:
+      - .:/app/
+    command: python -m venv .venv
+
   publisher:
     image: kgbtrbot:publisher
     container_name: kgbtrbot-publisher
@@ -9,31 +18,33 @@ services:
       target: development-stage
     networks:
       - net
-    volumes: 
-      - ./app/Publisher:/app
-      - ./app/Utils:/app/Utils
+    depends_on:
+      - rabbitmq
+    volumes:
+      - ./app/Publisher:/app/
+      - ./app/Common:/app/Common/
+      - ./app/Tasks:/app/Tasks/
+      - ./app/Utils:/app/Utils/
       - ./praw.ini:/app/praw.ini
-    command:
-     - python
-     - main.py
-  
+    command: python main.py
+
   consumer:
     image: kgbtrbot:consumer
     container_name: kgbtrbot-consumer
     build:
       context: ./.docker/python
       target: development-stage
+    depends_on:
+      - rabbitmq
     networks:
       - net
-    volumes: 
-      - ./app/Consumer:/app
-      - ./app/Common:/app/Common
-      - ./app/Tasks:/app/Tasks
-      - ./app/Utils:/app/Utils
+    volumes:
+      - ./app/Consumer:/app/
+      - ./app/Common:/app/Common/
+      - ./app/Tasks:/app/Tasks/
+      - ./app/Utils:/app/Utils/
       - ./praw.ini:/app/praw.ini
-    command:
-     - python
-     - main.py
+    command: python main.py
 
   2fa:
     image: kgbtrbot:authy
@@ -43,19 +54,19 @@ services:
       target: development-stage
     networks:
       - net
-    volumes: 
+    volumes:
       - ./app/2FA:/app
     command:
-     - python
-     - main.py
+      - python
+      - main.py
 
   rabbitmq:
     image: rabbitmq:management-alpine
     container_name: kgbtrbot-rabbitmq
     volumes:
-      - rabbitmq-data:/var/lib/rabbitmq/
       - ./.docker/rabbitmq/logs/:/var/log/rabbitmq/
       - ./.docker/rabbitmq/config:/etc/rabbitmq/
+      - rabbitmq-data:/var/lib/rabbitmq/
     environment:
       RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE}
     networks:
